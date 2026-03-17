@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import type { Pokemon } from '@/types/pokemon';
 import { PokemonStats } from '@/features/pokemon/components/PokemonStats';
@@ -36,9 +37,9 @@ export function PokemonDetailModal({ pokemon, onClose }: PokemonDetailModalProps
     return null;
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 py-6 backdrop-blur-sm"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/40 px-4 py-6 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       onClick={onClose}
@@ -112,6 +113,7 @@ export function PokemonDetailModal({ pokemon, onClose }: PokemonDetailModalProps
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
