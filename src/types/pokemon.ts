@@ -56,6 +56,11 @@ export type Pokemon = {
 export type PokemonSpecies = {
   id: number;
   name: string;
+  flavor_text_entries: Array<{
+    flavor_text: string;
+    language: NamedApiResource;
+    version: NamedApiResource;
+  }>;
   evolution_chain: {
     url: string;
   };

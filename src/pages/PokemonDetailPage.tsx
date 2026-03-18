@@ -10,7 +10,7 @@ import { PokemonStats } from '@/features/pokemon/components/PokemonStats';
 import { ApiError } from '@/services/api/errors';
 import { getEvolutionChain, getPokemonByName, getPokemonSpecies } from '@/services/api/pokemonApi';
 import { usePokemonCacheStore } from '@/store/usePokemonCacheStore';
-import type { EvolutionChainLink, Pokemon } from '@/types/pokemon';
+import type { EvolutionChainLink, Pokemon, PokemonSpecies } from '@/types/pokemon';
 
 type EvolutionPreviewItem = {
   name: string;
@@ -29,6 +29,28 @@ function flattenEvolutionChain(link: EvolutionChainLink): string[] {
 
 function uniqueNames(names: string[]): string[] {
   return Array.from(new Set(names));
+}
+
+function normalizeFlavorText(value: string): string {
+  return value
+    .replace(/[\n\f\r]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getPokedexDescription(species: PokemonSpecies): string | null {
+  const entries = species.flavor_text_entries ?? [];
+  const normalizedEntries = [...entries].reverse();
+
+  const preferredEntry =
+    normalizedEntries.find(
+      (entry) => entry.language.name === 'es' && Boolean(entry.flavor_text.trim()),
+    ) ??
+    normalizedEntries.find(
+      (entry) => entry.language.name === 'en' && Boolean(entry.flavor_text.trim()),
+    );
+
+  return preferredEntry ? normalizeFlavorText(preferredEntry.flavor_text) : null;
 }
 
 async function resolveEvolutionPokemonName(speciesName: string): Promise<string | null> {
@@ -84,6 +106,7 @@ export function PokemonDetailPage() {
   const setPokemons = usePokemonCacheStore((state) => state.setPokemons);
 
   const [pokemon, setPokemonState] = useState<Pokemon | null>(null);
+  const [pokedexDescription, setPokedexDescription] = useState<string | null>(null);
   const [evolutionItems, setEvolutionItems] = useState<EvolutionPreviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingEvolution, setLoadingEvolution] = useState(true);
@@ -94,6 +117,7 @@ export function PokemonDetailPage() {
   useEffect(() => {
     if (!normalizedName) {
       setPokemonState(null);
+      setPokedexDescription(null);
       setEvolutionItems([]);
       setLoading(false);
       setLoadingEvolution(false);
@@ -111,6 +135,7 @@ export function PokemonDetailPage() {
       setLoadingEvolution(true);
       setError(null);
       setEvolutionWarning(null);
+      setPokedexDescription(null);
       setEvolutionItems([]);
 
       try {
@@ -153,6 +178,7 @@ export function PokemonDetailPage() {
       try {
         // For forms like mega evolutions, species endpoint should use species.name, not pokemon.name.
         const species = await getPokemonSpecies(selectedPokemon.species.name);
+        setPokedexDescription(getPokedexDescription(species));
         const chain = await getEvolutionChain(species.evolution_chain.url);
         const names = uniqueNames(flattenEvolutionChain(chain.chain));
 
@@ -220,6 +246,7 @@ export function PokemonDetailPage() {
         }
       } catch {
         if (!cancelled) {
+          setPokedexDescription(null);
           setEvolutionItems([]);
           setEvolutionWarning('No pudimos cargar la cadena evolutiva de esta forma.');
         }
@@ -286,6 +313,15 @@ export function PokemonDetailPage() {
         {!loading && !error && pokemon ? (
           <>
             <PokemonHeader pokemon={pokemon} />
+
+            {pokedexDescription ? (
+              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Descripcion de la Pokedex
+                </h2>
+                <p className="text-sm leading-7 text-slate-700">{pokedexDescription}</p>
+              </section>
+            ) : null}
 
             <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
               <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
