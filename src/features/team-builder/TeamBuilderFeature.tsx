@@ -84,7 +84,7 @@ export function TeamBuilderFeature() {
 
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+            <p className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200">
               Team Builder
             </p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-ink">Random Pokemon Team</h1>
